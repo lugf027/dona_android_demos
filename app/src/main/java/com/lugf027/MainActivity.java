@@ -5,9 +5,11 @@ import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.lugf027.drawables.DrawablesActivity;
+import com.lugf027.qrcode.QRCodeActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private View mDrawableContainer;
+    private View mQRCodeContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +21,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initView() {
         mDrawableContainer = findViewById(R.id.main_drawable_container);
         mDrawableContainer.setOnClickListener(this);
+        mQRCodeContainer = findViewById(R.id.main_qrcode_container);
+        mQRCodeContainer.setOnClickListener(this);
     }
 
 
@@ -26,7 +30,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if (view == mDrawableContainer) {
             handleDrawableViewClick();
+        } else if (view == mQRCodeContainer) {
+            handleQRCodeViewClick();
         }
+    }
+
+    private void handleQRCodeViewClick() {
+        Intent intent = new Intent();
+        intent.setClass(this, QRCodeActivity.class);
+        startActivity(intent);
     }
 
     private void handleDrawableViewClick() {

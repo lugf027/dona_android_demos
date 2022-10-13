@@ -9,6 +9,8 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.Dona_android_demos">
+        <activity android:name=".qrcode.QRCodeActivity">
+        </activity>
         <activity
                 android:name=".drawables.DrawablesActivity"
                 android:exported="true"
