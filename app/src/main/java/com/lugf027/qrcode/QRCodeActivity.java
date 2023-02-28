@@ -83,10 +83,15 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
             Toast.makeText(this, "input invalid - empty", Toast.LENGTH_SHORT).show();
             return;
         }
-        mQRCodeImage.setBackground(generateDrawable(this, content));
+        mQRCodeImage.setBackground(
+                new BitmapDrawable(
+                        mQRCodeImage.getResources(),
+                        generateBitmap(content, mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight())
+                )
+        );
     }
 
-    private static Drawable generateDrawable(Context context, String content) {
+    private static Bitmap generateBitmap(String content, int width, int height) {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         //定义属性
         HashMap<EncodeHintType, Object> hintTypeStringMap = new HashMap<>();
@@ -97,22 +102,25 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
         hintTypeStringMap.put(EncodeHintType.MIN_SIZE, LOGO_WIDTH_MIN); // 设置最小值
 
         try {
-            BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, QR_CODE_SIZE, QR_CODE_SIZE, hintTypeStringMap);
-            int[] arr = new int[QR_CODE_SIZE * QR_CODE_SIZE];
+            BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hintTypeStringMap);
+            int[] arr = new int[width * height];
 
-            for (int i = 0; i < QR_CODE_SIZE; i++) {
-                for (int j = 0; j < QR_CODE_SIZE; j++) {
+            for (int i = 0; i < width; i++) {
+                for (int j = 0; j < height; j++) {
                     if (bitMatrix.get(i, j)) {
-                        arr[i * QR_CODE_SIZE + j] = Color.BLACK;
+                        int r = (int) (187 - (187.0 - 5) / height * (j + 1));
+                        int g = (int) (227 - (227.0 - 85) / height * (j + 1));
+                        int b = (int) (29 - (29.0 - 245) / height * (j + 1));
+                        int colorInt = Color.argb(255, r, g, b);
+                        arr[i * height + j] = bitMatrix.get(i, j) ? colorInt: 16777215;// 0x000000:0xffffff
                     } else {
-                        arr[i * QR_CODE_SIZE + j] = Color.WHITE;
+                        arr[i * height + j] = Color.TRANSPARENT;
                     }
                 }
             }
-            Bitmap bitmap = Bitmap.createBitmap(arr, QR_CODE_SIZE, QR_CODE_SIZE, Bitmap.Config.ARGB_8888);
-            return new BitmapDrawable(context.getResources(), bitmap);
+            Bitmap bitmap = Bitmap.createBitmap(arr, width, height, Bitmap.Config.ARGB_8888);
+            return bitmap;
         } catch (WriterException e) {
-            Toast.makeText(context, "generateDrawable e:" + e, Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
         return null;
