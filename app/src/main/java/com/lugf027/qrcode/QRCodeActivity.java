@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.google.android.material.textfield.TextInputEditText;
@@ -91,6 +92,7 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
         );
     }
 
+    @Nullable
     private static Bitmap generateBitmap(String content, int width, int height) {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         //定义属性
@@ -98,8 +100,8 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
         hintTypeStringMap.put(EncodeHintType.MARGIN, 0);
         hintTypeStringMap.put(EncodeHintType.CHARACTER_SET, "utf8");
         hintTypeStringMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);//设置最高错误级别
-        hintTypeStringMap.put(EncodeHintType.MAX_SIZE, LOGO_WIDTH_MAX); //设置最大值
-        hintTypeStringMap.put(EncodeHintType.MIN_SIZE, LOGO_WIDTH_MIN); // 设置最小值
+        hintTypeStringMap.put(EncodeHintType.MAX_SIZE, Math.min(width, height) / 5); //设置最大值
+        hintTypeStringMap.put(EncodeHintType.MIN_SIZE, Math.min(width, height) / 10); // 设置最小值
 
         try {
             BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hintTypeStringMap);
@@ -118,8 +120,7 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
                     }
                 }
             }
-            Bitmap bitmap = Bitmap.createBitmap(arr, width, height, Bitmap.Config.ARGB_8888);
-            return bitmap;
+            return Bitmap.createBitmap(arr, width, height, Bitmap.Config.ARGB_8888);
         } catch (WriterException e) {
             e.printStackTrace();
         }
