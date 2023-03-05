@@ -63,7 +63,7 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void handleChangeStyleBtnClick() {
-        curStyleIndex = (curStyleIndex + 1) % 2;
+        curStyleIndex = (curStyleIndex + 1) % 3;
         handleGenerateBtnClick();
     }
 
@@ -79,9 +79,11 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
         }
         Bitmap bitmap;
         if (curStyleIndex == 0) {
-            bitmap =  QRCodeUtils.generateColorfulBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
-        } else {
+            bitmap = QRCodeUtils.generateColorfulBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
+        } else if (curStyleIndex == 1) {
             bitmap = QRCodeUtils.generateDotBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
+        } else {
+            bitmap = QRCodeUtilsV2.generateDotBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
         }
         mQRCodeImage.setBackground(new BitmapDrawable(mQRCodeImage.getResources(), bitmap));
     }
