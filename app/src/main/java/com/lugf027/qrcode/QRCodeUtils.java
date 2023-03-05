@@ -29,7 +29,7 @@ public class QRCodeUtils {
         try {
             BitMatrix bitMatrix = createBitMatrix(content, 0);
             Bitmap qrCodeBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-            drawDotBitMap(qrCodeBitmap, bitMatrix, size, startColor, endColor);
+            drawDotBitMapImpl(qrCodeBitmap, bitMatrix, size, startColor, endColor);
             return qrCodeBitmap;
         } catch (Exception e) {
             e.printStackTrace();
@@ -37,23 +37,23 @@ public class QRCodeUtils {
         return null;
     }
 
-    private static void drawDotBitMap(Bitmap qrCodeBitmap, BitMatrix bitMatrix, int size, Color startColor, Color endColor) {
+    private static void drawDotBitMapImpl(Bitmap qrCodeBitmap, BitMatrix bitMatrix, int size, Color startColor, Color endColor) {
         Canvas canvas = new Canvas(qrCodeBitmap);
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setShader(new LinearGradient(0f, 0f, (float) size, (float) size, startColor.toArgb(), endColor.toArgb(), Shader.TileMode.CLAMP));
 
         drawInnerLittleDot(canvas, paint, bitMatrix, size);
-        drawOuterBitDot(canvas, paint, bitMatrix, size);
+        drawOuterDetectPositionBigDot(canvas, paint, bitMatrix, size);
         canvas.drawBitmap(qrCodeBitmap, null, new Rect(0, 0, size, size), null);
     }
 
+    // 绘制三个定位角以外的小圆点们
     private static void drawInnerLittleDot(Canvas canvas, Paint paint, BitMatrix bitMatrix, int size) {
         int matrixSize = bitMatrix.getWidth();
         float dotSize = size / (float) matrixSize;
         float dotRadius = dotSize / 2;
-        float curDotX;
-        float curDotY;
+        float curDotCenterX, curDotCenterY;
 
         for (int row = 0; row < matrixSize; row++) {
             for (int column = 0; column < matrixSize; column++) {
@@ -63,30 +63,33 @@ public class QRCodeUtils {
                 if (row <= 6 && column <= 6
                         || row <= 6 && column >= matrixSize - 7
                         || row >= matrixSize - 7 && column <= 6) {
-                    // 左上角、右上角、左下角
+                    // 左上角、右上角、左下角，不绘制小圆点
                     continue;
                 }
-                curDotX = row * dotSize + dotRadius;
-                curDotY = column * dotSize + dotRadius;
-                canvas.drawCircle(curDotX, curDotY, dotRadius, paint);
+                curDotCenterX = row * dotSize + dotRadius;
+                curDotCenterY = column * dotSize + dotRadius;
+                canvas.drawCircle(curDotCenterX, curDotCenterY, dotRadius, paint);
             }
         }
     }
 
-    private static void drawOuterBitDot(Canvas canvas, Paint paint, BitMatrix bitMatrix, int size) {
+    // 绘制三个定位角
+    private static void drawOuterDetectPositionBigDot(Canvas canvas, Paint paint, BitMatrix bitMatrix, int size) {
         float perDotSize = size / (float) bitMatrix.getWidth();
         float totalRadius = perDotSize * 7 / 2;
-        drawOneOuterBitDot(canvas, paint, totalRadius, totalRadius, perDotSize);
-        drawOneOuterBitDot(canvas, paint, totalRadius, size - totalRadius, perDotSize);
-        drawOneOuterBitDot(canvas, paint, size - totalRadius, totalRadius, perDotSize);
+        drawOneDetectPositionDotImpl(canvas, paint, totalRadius, totalRadius, perDotSize);
+        drawOneDetectPositionDotImpl(canvas, paint, totalRadius, size - totalRadius, perDotSize);
+        drawOneDetectPositionDotImpl(canvas, paint, size - totalRadius, totalRadius, perDotSize);
     }
 
-    private static void drawOneOuterBitDot(Canvas canvas, Paint paint, float dotCenterX, float dotCentY, float perDotSize) {
+    // 绘制单个定位角。实现是依次绘制三个圆，且内部覆盖外部
+    private static void drawOneDetectPositionDotImpl(Canvas canvas, Paint paint, float dotCenterX, float dotCentY, float perDotSize) {
         int oldAlpha = paint.getAlpha();
         Xfermode paintXfermode = paint.getXfermode();
         canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 7 / 2, paint);
 
         paint.setAlpha(0);
+        // 重合的地方混合方式，只显示空白的 https://www.jianshu.com/p/d11892bbe055
         paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
         canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 5 / 2, paint);
 
