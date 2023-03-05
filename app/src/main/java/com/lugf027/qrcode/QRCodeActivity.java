@@ -1,27 +1,16 @@
 package com.lugf027.qrcode;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
-import com.google.zxing.qrcode.QRCodeWriter;
-import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 import com.lugf027.R;
-
-import java.util.HashMap;
 
 public class QRCodeActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -36,6 +25,9 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
     private View mSave2GalleryBtn;
     private ImageView mQRCodeImage;
     private TextInputEditText mQRCodeContentInput;
+    private final Color startColor = Color.valueOf(Color.parseColor("#ccff00"));
+    private final Color endColor = Color.valueOf(Color.parseColor("#00ff99"));
+    private int curStyleIndex = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +63,8 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void handleChangeStyleBtnClick() {
-        Toast.makeText(this, "not impl, pl wait", Toast.LENGTH_SHORT).show();
+        curStyleIndex = (curStyleIndex + 1) % 2;
+        handleGenerateBtnClick();
     }
 
     private void handleGenerateBtnClick() {
@@ -84,46 +77,12 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
             Toast.makeText(this, "input invalid - empty", Toast.LENGTH_SHORT).show();
             return;
         }
-        mQRCodeImage.setBackground(
-                new BitmapDrawable(
-                        mQRCodeImage.getResources(),
-                        generateBitmap(content, mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight())
-                )
-        );
-    }
-
-    @Nullable
-    private static Bitmap generateBitmap(String content, int width, int height) {
-        QRCodeWriter qrCodeWriter = new QRCodeWriter();
-        //定义属性
-        HashMap<EncodeHintType, Object> hintTypeStringMap = new HashMap<>();
-        hintTypeStringMap.put(EncodeHintType.MARGIN, 0);
-        hintTypeStringMap.put(EncodeHintType.CHARACTER_SET, "utf8");
-        hintTypeStringMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);//设置最高错误级别
-        hintTypeStringMap.put(EncodeHintType.MAX_SIZE, Math.min(width, height) / 5); //设置最大值
-        hintTypeStringMap.put(EncodeHintType.MIN_SIZE, Math.min(width, height) / 10); // 设置最小值
-
-        try {
-            BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, width, height, hintTypeStringMap);
-            int[] arr = new int[width * height];
-
-            for (int i = 0; i < width; i++) {
-                for (int j = 0; j < height; j++) {
-                    if (bitMatrix.get(i, j)) {
-                        int r = (int) (187 - (187.0 - 5) / height * (j + 1));
-                        int g = (int) (227 - (227.0 - 85) / height * (j + 1));
-                        int b = (int) (29 - (29.0 - 245) / height * (j + 1));
-                        int colorInt = Color.argb(255, r, g, b);
-                        arr[i * height + j] = bitMatrix.get(i, j) ? colorInt: 16777215;// 0x000000:0xffffff
-                    } else {
-                        arr[i * height + j] = Color.TRANSPARENT;
-                    }
-                }
-            }
-            return Bitmap.createBitmap(arr, width, height, Bitmap.Config.ARGB_8888);
-        } catch (WriterException e) {
-            e.printStackTrace();
+        Bitmap bitmap;
+        if (curStyleIndex == 0) {
+            bitmap =  QRCodeUtils.generateColorfulBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
+        } else {
+            bitmap = QRCodeUtils.generateDotBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
         }
-        return null;
+        mQRCodeImage.setBackground(new BitmapDrawable(mQRCodeImage.getResources(), bitmap));
     }
 }
