@@ -70,7 +70,6 @@ public class QRCodeUtilsV2 {
                     if (needDrawCircle) {
                         canvas.drawCircle(curDotCenterX, curDotCenterY, dotRadius, paint);
                     }
-
                 } else {
                     drawRoundEdgeWhenNeeded(canvas, paint, bitMatrix, curDotCenterX, curDotCenterY, dotRadius, column, row);
                 }

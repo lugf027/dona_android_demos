@@ -60,9 +60,7 @@ public class QRCodeUtils1 {
                 if (!bitMatrix.get(row, column)) {
                     continue;
                 }
-                if (row <= 6 && column <= 6
-                        || row <= 6 && column >= matrixSize - 7
-                        || row >= matrixSize - 7 && column <= 6) {
+                if (row <= 6 && column <= 6 || row <= 6 && column >= matrixSize - 7 || row >= matrixSize - 7 && column <= 6) {
                     // 左上角、右上角、左下角，不绘制小圆点
                     continue;
                 }
