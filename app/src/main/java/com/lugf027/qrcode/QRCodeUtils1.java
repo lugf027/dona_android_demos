@@ -20,16 +20,16 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import java.util.HashMap;
 
-public class QRCodeUtils {
+public class QRCodeUtils1 {
     /**
      * 圆点二维码
      */
     @Nullable
-    public static Bitmap generateColorfulBitmap1(String content, int size, Color startColor, Color endColor) {
+    public static Bitmap generateDotBitmap(String content, int size, Color startColor, Color endColor) {
         try {
             BitMatrix bitMatrix = createBitMatrix(content, 0);
             Bitmap qrCodeBitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-            drawRectBitMapImpl(qrCodeBitmap, bitMatrix, size, startColor, endColor);
+            drawDotBitMapImpl(qrCodeBitmap, bitMatrix, size, startColor, endColor);
             return qrCodeBitmap;
         } catch (Exception e) {
             e.printStackTrace();
@@ -37,60 +37,65 @@ public class QRCodeUtils {
         return null;
     }
 
-    private static void drawRectBitMapImpl(Bitmap qrCodeBitmap, BitMatrix bitMatrix, int size, Color startColor, Color endColor) {
+    private static void drawDotBitMapImpl(Bitmap qrCodeBitmap, BitMatrix bitMatrix, int size, Color startColor, Color endColor) {
         Canvas canvas = new Canvas(qrCodeBitmap);
         Paint paint = new Paint();
         paint.setAntiAlias(true);
         paint.setShader(new LinearGradient(0f, 0f, (float) size, (float) size, startColor.toArgb(), endColor.toArgb(), Shader.TileMode.CLAMP));
 
-        drawRectImpl(canvas, paint, bitMatrix, size);
+        drawInnerLittleDot(canvas, paint, bitMatrix, size);
+        drawOuterDetectPositionBigDot(canvas, paint, bitMatrix, size);
         canvas.drawBitmap(qrCodeBitmap, null, new Rect(0, 0, size, size), null);
     }
 
     // 绘制三个定位角以外的小圆点们
-    private static void drawRectImpl(Canvas canvas, Paint paint, BitMatrix bitMatrix, int size) {
+    private static void drawInnerLittleDot(Canvas canvas, Paint paint, BitMatrix bitMatrix, int size) {
         int matrixSize = bitMatrix.getWidth();
         float dotSize = size / (float) matrixSize;
-        float rectLeft, rectTop;
+        float dotRadius = dotSize / 2;
+        float curDotCenterX, curDotCenterY;
 
         for (int row = 0; row < matrixSize; row++) {
             for (int column = 0; column < matrixSize; column++) {
                 if (!bitMatrix.get(row, column)) {
                     continue;
                 }
-                rectLeft = row * dotSize;
-                rectTop = column * dotSize;
-                canvas.drawRect(rectLeft, rectTop, rectLeft + dotSize, rectTop + dotSize, paint);
+                if (row <= 6 && column <= 6
+                        || row <= 6 && column >= matrixSize - 7
+                        || row >= matrixSize - 7 && column <= 6) {
+                    // 左上角、右上角、左下角，不绘制小圆点
+                    continue;
+                }
+                curDotCenterX = row * dotSize + dotRadius;
+                curDotCenterY = column * dotSize + dotRadius;
+                canvas.drawCircle(curDotCenterX, curDotCenterY, dotRadius, paint);
             }
         }
     }
 
-    /**
-     * 渐变色二维码
-     */
-    @Nullable
-    public static Bitmap generateColorfulBitmap(String content, int size, Color startColor, Color endColor) {
-        try {
-            BitMatrix bitMatrix = createBitMatrix(content, size);
-            int[] arr = new int[size * size];
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
-                    if (bitMatrix.get(i, j)) {
-                        int r = (int) (255 * (startColor.red() - (startColor.red() - endColor.red()) / size * (j + 1)));
-                        int g = (int) (255 * (startColor.green() - (startColor.green() - endColor.green()) / size * (j + 1)));
-                        int b = (int) (255 * ((startColor.blue() - (startColor.blue() - endColor.blue()) / size * (j + 1))));
-                        int colorInt = Color.argb(255, r, g, b);
-                        arr[i * size + j] = bitMatrix.get(i, j) ? colorInt : 16777215;// 0x000000:0xffffff
-                    } else {
-                        arr[i * size + j] = Color.TRANSPARENT;
-                    }
-                }
-            }
-            return Bitmap.createBitmap(arr, size, size, Bitmap.Config.ARGB_8888);
-        } catch (WriterException e) {
-            e.printStackTrace();
-        }
-        return null;
+    // 绘制三个定位角
+    private static void drawOuterDetectPositionBigDot(Canvas canvas, Paint paint, BitMatrix bitMatrix, int size) {
+        float perDotSize = size / (float) bitMatrix.getWidth();
+        float totalRadius = perDotSize * 7 / 2;
+        drawOneDetectPositionDotImpl(canvas, paint, totalRadius, totalRadius, perDotSize);
+        drawOneDetectPositionDotImpl(canvas, paint, totalRadius, size - totalRadius, perDotSize);
+        drawOneDetectPositionDotImpl(canvas, paint, size - totalRadius, totalRadius, perDotSize);
+    }
+
+    // 绘制单个定位角。实现是依次绘制三个圆，且内部覆盖外部
+    private static void drawOneDetectPositionDotImpl(Canvas canvas, Paint paint, float dotCenterX, float dotCentY, float perDotSize) {
+        int oldAlpha = paint.getAlpha();
+        Xfermode paintXfermode = paint.getXfermode();
+        canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 7 / 2, paint);
+
+        paint.setAlpha(0);
+        // 重合的地方混合方式，只显示空白的 https://www.jianshu.com/p/d11892bbe055
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 5 / 2, paint);
+
+        paint.setAlpha(oldAlpha);
+        paint.setXfermode(paintXfermode);
+        canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 3 / 2, paint);
     }
 
     private static BitMatrix createBitMatrix(String content, int size) throws WriterException {

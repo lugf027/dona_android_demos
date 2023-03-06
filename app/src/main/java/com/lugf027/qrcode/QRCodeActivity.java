@@ -79,9 +79,9 @@ public class QRCodeActivity extends AppCompatActivity implements View.OnClickLis
         }
         Bitmap bitmap;
         if (curStyleIndex == 0) {
-            bitmap = QRCodeUtils.generateColorfulBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
+            bitmap = QRCodeUtils.generateColorfulBitmap1(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
         } else if (curStyleIndex == 1) {
-            bitmap = QRCodeUtils.generateDotBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
+            bitmap = QRCodeUtils1.generateDotBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
         } else {
             bitmap = QRCodeUtilsV2.generateDotBitmap(content, Math.min(mQRCodeImage.getMeasuredWidth(), mQRCodeImage.getMeasuredHeight()), startColor, endColor);
         }
