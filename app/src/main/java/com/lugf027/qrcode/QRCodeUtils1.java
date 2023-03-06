@@ -84,16 +84,13 @@ public class QRCodeUtils1 {
 
     // 绘制单个定位角。实现是依次绘制三个圆，且内部覆盖外部
     private static void drawOneDetectPositionDotImpl(Canvas canvas, Paint paint, float dotCenterX, float dotCentY, float perDotSize) {
-        int oldAlpha = paint.getAlpha();
         Xfermode paintXfermode = paint.getXfermode();
         canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 7 / 2, paint);
 
-        paint.setAlpha(0);
-        // 重合的地方混合方式，只显示空白的 https://www.jianshu.com/p/d11892bbe055
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        // 重合的地方混合方式，显示空白 https://www.jianshu.com/p/d11892bbe055
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
         canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 5 / 2, paint);
 
-        paint.setAlpha(oldAlpha);
         paint.setXfermode(paintXfermode);
         canvas.drawCircle(dotCenterX, dotCentY, perDotSize * 3 / 2, paint);
     }
